@@ -12,7 +12,7 @@ class Line:
           self.b = 'v'
           self.x = p1[0]
         else:
-          # Cast one of the integer to float to convert 
+          # Cast one of the integer to float 
           self.m = (float(p2[1]) - p1[1]) / (p2[0]- p1[0])
           self.b = float(p1[1]) - self.m * p1[0]
 
@@ -26,6 +26,7 @@ def check_intersection(p1, p2, p3, p4):
   line2 = Line(p3,p4)
   if line2.m == line1.m and line1.b != line2.b:
     return False
+
   elif line1.m == 'v':
     x = line1.x
     y = line2.m * x + line2.b
@@ -115,8 +116,7 @@ def build_graph(streets):
               p2_id = vertex_id
               vertex_id = vertex_id + 1
          
-            # Make sure that the edge is unique and that the point is 
-            # not equal to the intersection!
+            # Make sure that the edge is unique and that the point is not equal to the intersection!
             if not (p1_id, intersection_id) in E and p1 != intersection:
               E.append((p1_id, intersection_id))
             if not (p2_id, intersection_id) in E and p2 != intersection:
@@ -181,22 +181,17 @@ def build_graph(streets):
       # intersection to p1
   
       # Returns a sorted array of tuples, sorted 
-      # by the second value in the array. In this, case the tuple is 
-      # (intersection_id, distance to p1). The sort is in terms of the 
-      # distance from the intersection to p1.
+      # by the second value in the array. In this, case the tuple is (intersection_id, distance to p1). The sort is in terms of the distance from the intersection to p1.
       sorted_value = sorted(value.items(), key=lambda x: x[1])
 
-      # This loop removes all the intersections in E that are also in 
-      #sorted_value, which represents a list that tells us what the 
-      # order of intersections is and thus which nodes are connected.
+      # This loop removes all the intersections in E that are also in sorted_value, which represents a list that tells us what the order of intersections is and thus which nodes are connected.
       for i in range(len(sorted_value)):
         if (p1, sorted_value[i][0]) in E:
           E.remove((p1, sorted_value[i][0]))
         if (p2, sorted_value[i][0]) in E:
           E.remove((p2, sorted_value[i][0]))
             
-      # We then add the edges back into E with the correct connections 
-      #between nodes.
+      # We then add the edges back into E with the correct connections between nodes.
 
       # This is the case where the first intersection is
       # equal to the point p1 and there are two intersections.
@@ -209,9 +204,7 @@ def build_graph(streets):
       # This is the case where the first intersection is
       # equal to the point p1 and there are more than two intersections.
       elif (sorted_value[0][1]) == 0 and len(sorted_value) > 2: 
-        # We say the first intersection is p1 with the second 
-        # intersection_id, since the first intersection_id has the 
-        # same coordinates as p1.
+        # We say the first intersection is p1 with the second intersection_id, since the first intersection_id has the same coordinates as p1.
         intersection1 = (p1, sorted_value[1][0])
         E.append(intersection1)
         for j in range(len(sorted_value)-2):
@@ -235,21 +228,46 @@ def build_graph(streets):
 
 def main():
     streets = {}
+    # r = check_intersection((-3,-2),(-3,0),(-3,0),(2,2))
+    # print(r)
+   
     while True:
-      line = sys.stdin.readline()
-
+      try:
+        arg = raw_input()
+      except EOFError:
+        sys.exit(0)
+      
+      #line = sys.stdin.readline()
+      line = arg
       user_input = re.compile("([acrg])\s(\".+\")\s").split(line)
 
       if len(user_input) == 1:
-        command_list = re.findall('^g$', user_input[0])
-        try:
-          command = command_list[0]
-          if command[0] != 'g':
+        # Handle the command = 'r' case here.
+        if user_input[0][0] == 'r':
+          format_user_input = re.compile("(\".+\")")     .split(line)
+   
+          street_name_r = format_user_input[1]
+          try:
+            del streets[street_name_r]
+            continue
+          except:
+            sys.stderr.write("Error: " + street_name_r + " does not exist.\n")
+            continue
+      
+          
+        
+        else:
+          command_list = re.findall('^g$', user_input[0])
+            
+          try:
+            command = command_list[0]
+            if command[0] != 'g':
+              sys.stderr.write("Error: Invalid input.\n")
+              continue
+      
+          except:
             sys.stderr.write("Error: Invalid input.\n")
             continue
-        except:
-          sys.stderr.write("Error: Invalid input.\n")
-          continue
       else:
         command = re.sub('[^acr]',"", user_input[1])
         if len(command) == 0 or len(command) > 1:
@@ -258,9 +276,7 @@ def main():
 
         street_name = user_input[2]
         street_name_test = []
-        # Regex doesn't return the proper string if the length of the 
-        # string is less than 4, so if the string's length is less than 
-        # 4 we manually feed it into the next stage of formatting.
+        # Regex doesn't return the proper string if the length of the string is less than 4, so if the string's length is less than 4 we manually feed it into the next stage of formatting.
         if len(street_name) <= 4:
           street_name_test.append(street_name)
         else:
@@ -284,10 +300,8 @@ def main():
         # but in a different case, it gets matched to
         # how it was originally entered.
         for key in streets.keys():
-          # Need to format both strings to contain no spaces and no 
-          # quotes so that we can compare them
-          # Note that this does open up potential errors if the spaces 
-          # are not aligned. This should be fixed in the future!
+          # Need to format both strings to contain no spaces and no quotes so that we can compare them
+          # Note that this does open up potential errors if the spaces are not aligned. This should be fixed in the future!
           format_street_name = re.findall('[^"\s]+',street_name)
           format_key = re.findall('[^"\s]+',key)
           try: 
@@ -305,10 +319,16 @@ def main():
 
         coordinates_test = re.findall("^((\(-?\d*\,-?\d*\))*)$", no_space_coordinates)
         format_coordinates = re.sub("\s","", user_input[3])
-    
-        if coordinates_test[0][0] != format_coordinates:
+
+        try:
+          if coordinates_test[0][0] != format_coordinates:
+            sys.stderr.write("Error: Invalid coordinates.\n")
+            continue
+        except:
           sys.stderr.write("Error: Invalid coordinates.\n")
           continue
+
+
       if command == 'a':
         if user_input[2][0] == " " or user_input[2][len(user_input[2])-1] == " ":
           sys.stderr.write("Error: Spaces are not allowed at the beginning or end of the street name.\n")
@@ -334,13 +354,6 @@ def main():
           vertices.append((int(t[i + counter]),int(t[i + counter + 1])))
           streets[street_name] = vertices
           counter = counter + 1
-       
-      elif command == 'r':
-        try:
-          del streets[street_name]
-        except:
-          sys.stderr.write("Error: " + street_name + " does not exist.\n")
-          continue
         
       elif command == 'g':
         if len(streets.values()) == 0:
